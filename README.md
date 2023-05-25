@@ -4,7 +4,7 @@ This is a GUI tool designed to convert PNG images to DDS format. It uses the `nv
 
 ## Prerequisites
 
-1. **Python**: Ensure you have Python installed on your machine. The Python version used for developing this tool is Python 3.8. You can download Python from the official site: https://www.python.org/downloads/.
+1. **Python**: Ensure you have Python installed on your machine. The Python version used for developing this tool is Python 3.10. You can download Python from the official site: https://www.python.org/downloads/.
 
 2. **Libraries**: Install necessary Python libraries using pip:
     - Tkinter: Tkinter is Python's de-facto standard GUI package. It is included with Python by default.
@@ -52,7 +52,7 @@ This tool was developed for educational purposes and has not been extensively te
 
 ## 前提条件
 
-1. **Python**: お使いのマシンにPythonがインストールされていることを確認してください。このツールの開発に使用されたPythonのバージョンはPython 3.8です。Pythonは公式サイトからダウンロードできます: https://www.python.org/downloads/
+1. **Python**: お使いのマシンにPythonがインストールされていることを確認してください。このツールの開発に使用されたPythonのバージョンはPython 3.10です。Pythonは公式サイトからダウンロードできます: https://www.python.org/downloads/
 
 2. **ライブラリ**: pipを使用して必要なPythonライブラリをインストールします：
     - Tkinter: TkinterはPythonのデファクトスタンダードGUIパッケージです。Pythonにはデフォルトで含まれています。
