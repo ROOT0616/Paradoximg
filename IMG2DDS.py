@@ -16,15 +16,7 @@ def browse_output_dir():
     output_dir_entry.delete(0, tk.END)
     output_dir_entry.insert(0, filename)
 
-def set_color_to_opaque_pixels(img, color):
-    # Set opaque pixels to the chosen color
-    data = np.array(img)
-    r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
-    data[(a != 0)] = color
-    img = Image.fromarray(data)
-    return img
-
-def resize_and_paste_images(input_dir, output_dir, size, base_image_path, compression_format, color):
+def resize_and_paste_images(input_dir, output_dir, size, base_image_path, color, compression_format, resize_after, invert_paste):
     files = os.listdir(input_dir)
     number_of_files = len(files)
     progress_bar["maximum"] = number_of_files
@@ -37,15 +29,35 @@ def resize_and_paste_images(input_dir, output_dir, size, base_image_path, compre
         dds_output = os.path.join(output_dir, os.path.splitext(filename)[0] + ".dds")
         img = Image.open(input_path).convert("RGBA")
 
-        img = set_color_to_opaque_pixels(img, color)
+        if color:
+            data = np.array(img)
+            red, green, blue, alpha = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
+            mask = (red != 0) | (green != 0) | (blue != 0) | (alpha != 0)
+            data[:,:,:3][mask] = color[:3]
+            img = Image.fromarray(data)
 
-        img = img.resize(size, Image.ANTIALIAS)
-
-        base = base_image.copy()
-
-        # compute the position where the image will be pasted
-        position = ((base_image.width - img.width) // 2, (base_image.height - img.height) // 2)
-        base.paste(img, position, img)
+        if invert_paste and resize_after:
+            base = base_image.copy()
+            position = ((img.width - base.width) // 2, (img.height - base.height) // 2)
+            img.paste(base, position, base)
+            base = img.resize(size, Image.ANTIALIAS)
+        elif invert_paste or resize_after:
+            if invert_paste:
+                img = img.resize(size, Image.ANTIALIAS)
+                base = base_image.copy()
+                position = ((img.width - base.width) // 2, (img.height - base.height) // 2)
+                img.paste(base, position, base)
+                base = img
+            else:
+                base = base_image.copy()
+                position = ((base.width - img.width) // 2, (base.height - img.height) // 2)
+                base.paste(img, position, img)
+                base = base.resize(size, Image.ANTIALIAS)
+        else:
+            base = base_image.copy()
+            img = img.resize(size, Image.ANTIALIAS)
+            position = ((base.width - img.width) // 2, (base.height - img.height) // 2)
+            base.paste(img, position, img)
 
         base.save(temp_output, "PNG")
         try:
@@ -57,7 +69,7 @@ def resize_and_paste_images(input_dir, output_dir, size, base_image_path, compre
         progress_bar["value"] = i+1
         root.update_idletasks()
 
-def convert_to_dds(input_dir, output_dir, compression_format, color):
+def convert_to_dds(input_dir, output_dir, color, compression_format):
     files = os.listdir(input_dir)
     number_of_files = len(files)
     progress_bar["maximum"] = number_of_files
@@ -65,10 +77,6 @@ def convert_to_dds(input_dir, output_dir, compression_format, color):
     for i, filename in enumerate(files):
         input_path = os.path.join(input_dir, filename)
         dds_output = os.path.join(output_dir, os.path.splitext(filename)[0] + ".dds")
-
-        img = Image.open(input_path).convert("RGBA")
-        img = set_color_to_opaque_pixels(img, color)
-        img.save(input_path, "PNG")
 
         try:
             subprocess.call(["nvcompress", compression_format, input_path, dds_output])
@@ -85,9 +93,11 @@ def convert_images():
     width = width_entry.get()
     height = height_entry.get()
     base_image_name = base_image_combobox.get()
-    color = colors_combobox.get()
+    color_name = color_combobox.get()
+    resize_after = resize_checkbox_var.get()
+    invert_paste = invert_paste_checkbox_var.get()
 
-    color_rgba = color_options[color]
+    color = color_options.get(color_name, None)
 
     if not os.path.isdir(input_dir):
         messagebox.showerror("Error", f"Input directory does not exist: {input_dir}")
@@ -105,9 +115,9 @@ def convert_images():
         if not os.path.isfile(base_image_path):
             messagebox.showerror("Error", f"Base image does not exist: {base_image_path}")
             return
-        resize_and_paste_images(input_dir, output_dir, size, base_image_path, compression_format, color_rgba)
+        resize_and_paste_images(input_dir, output_dir, size, base_image_path, color, compression_format, resize_after, invert_paste)
     else:
-        convert_to_dds(input_dir, output_dir, compression_format, color_rgba)
+        convert_to_dds(input_dir, output_dir, color, compression_format)
 
 def reset_fields():
     input_dir_entry.delete(0, tk.END)
@@ -116,25 +126,14 @@ def reset_fields():
     width_entry.delete(0, tk.END)
     height_entry.delete(0, tk.END)
     base_image_combobox.set('')
-    colors_combobox.set('')
+    color_combobox.set('')
+    resize_checkbox_var.set(0)
+    invert_paste_checkbox_var.set(0)
 
 root = tk.Tk()
 
-compression_options = [
-    '-fast', '-production', '-highest', '-nocuda', '-rgb', '-lumi', 
-    '-bc1', '-bc1n', '-bc1a', '-bc2', '-bc3', '-bc3n', '-bc4', '-bc4s', 
-    '-ati2', '-bc5', '-bc5s', '-bc6', '-bc6s', '-bc7', '-bc3_rgbm', 
-    '-astc_ldr_4x4', '-astc_ldr_5x4', '-astc_ldr_12x12'
-]
-
-color_options = {
-    'Black': [0, 0, 0, 255],
-    'White': [255, 255, 255, 255],
-    'Red': [255, 0, 0, 255],
-    'Green': [0, 255, 0, 255],
-    'Blue': [0, 0, 255, 255],
-    # Add more colors if you need
-}
+compression_options = ['-fast', '-production', '-highest', '-nocuda', '-rgb', '-lumi', '-bc1', '-bc1n', '-bc1a', '-bc2', '-bc3', '-bc3n', '-bc4', '-bc4s', '-ati2', '-bc5', '-bc5s', '-bc6', '-bc6s', '-bc7', '-bc3_rgbm', '-astc_ldr_4x4', '-astc_ldr_5x4', '-astc_ldr_12x12']
+color_options = {'Black': [0, 0, 0], 'Red': [255, 0, 0], 'Green': [0, 255, 0], 'Blue': [0, 0, 255], 'White': [255, 255, 255], None: None}
 
 input_dir_label = tk.Label(root, text="Input Directory:")
 input_dir_label.pack()
@@ -167,22 +166,29 @@ height_entry.pack()
 
 base_image_label = tk.Label(root, text="Base Image:")
 base_image_label.pack()
-base_images = os.listdir("Base_Image")
-base_image_combobox = ttk.Combobox(root, values=base_images)
+base_image_combobox = ttk.Combobox(root, values=os.listdir("Base_Image"))
 base_image_combobox.pack()
 
 color_label = tk.Label(root, text="Color:")
 color_label.pack()
-colors_combobox = ttk.Combobox(root, values=list(color_options.keys()))
-colors_combobox.pack()
+color_combobox = ttk.Combobox(root, values=list(color_options.keys()))
+color_combobox.pack()
 
-convert_button = tk.Button(root, text="Convert Images", command=convert_images)
-convert_button.pack()
+resize_checkbox_var = tk.IntVar()
+resize_checkbox = tk.Checkbutton(root, text="Resize after paste", variable=resize_checkbox_var)
+resize_checkbox.pack()
+
+invert_paste_checkbox_var = tk.IntVar()
+invert_paste_checkbox = tk.Checkbutton(root, text="Invert paste order", variable=invert_paste_checkbox_var)
+invert_paste_checkbox.pack()
+
+progress_bar = ttk.Progressbar(root)
+progress_bar.pack()
+
+convert_images_button = tk.Button(root, text="Convert Images", command=convert_images)
+convert_images_button.pack()
 
 reset_button = tk.Button(root, text="Reset", command=reset_fields)
 reset_button.pack()
-
-progress_bar = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate")
-progress_bar.pack()
 
 root.mainloop()
