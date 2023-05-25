@@ -131,6 +131,7 @@ def reset_fields():
     invert_paste_checkbox_var.set(0)
 
 root = tk.Tk()
+root.title('PNG to DDS Converter')
 
 compression_options = ['-fast', '-production', '-highest', '-nocuda', '-rgb', '-lumi', '-bc1', '-bc1n', '-bc1a', '-bc2', '-bc3', '-bc3n', '-bc4', '-bc4s', '-ati2', '-bc5', '-bc5s', '-bc6', '-bc6s', '-bc7', '-bc3_rgbm', '-astc_ldr_4x4', '-astc_ldr_5x4', '-astc_ldr_12x12']
 color_options = {'Nomal': [0, 36, 31], 'Corporate': [12, 12, 5], 'Machine': [0, 23, 33], 'Red': [255, 0, 0], 'Green': [0, 255, 0], 'Blue': [0, 0, 255], 'White': [255, 255, 255], None: None}
@@ -166,7 +167,7 @@ height_entry.pack()
 
 base_image_label = tk.Label(root, text="Base Image:")
 base_image_label.pack()
-base_image_combobox = ttk.Combobox(root, values=os.listdir("Base_Image"))
+base_image_combobox = ttk.Combobox(root, values=os.listdir("Base_Image"), width=30)
 base_image_combobox.pack()
 
 color_label = tk.Label(root, text="Color:")
@@ -182,7 +183,7 @@ invert_paste_checkbox_var = tk.IntVar()
 invert_paste_checkbox = tk.Checkbutton(root, text="Invert paste order", variable=invert_paste_checkbox_var)
 invert_paste_checkbox.pack()
 
-progress_bar = ttk.Progressbar(root)
+progress_bar = ttk.Progressbar(root, length=200)
 progress_bar.pack()
 
 convert_images_button = tk.Button(root, text="Convert Images", command=convert_images)
