@@ -16,12 +16,19 @@ def browse_output_dir():
     output_dir_entry.delete(0, tk.END)
     output_dir_entry.insert(0, filename)
 
+def apply_color(img, color):
+    data = np.array(img)
+    red, green, blue, alpha = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
+    mask = (red != 0) | (green != 0) | (blue != 0) | (alpha != 0)
+    data[:,:,:3][mask] = color[:3]
+    return Image.fromarray(data)
+
 def resize_and_paste_images(input_dir, output_dir, size, base_image_path, color, compression_format, resize_after, invert_paste):
     files = os.listdir(input_dir)
     number_of_files = len(files)
     progress_bar["maximum"] = number_of_files
 
-    base_image = Image.open(base_image_path).convert("RGBA")
+    base_image = Image.open(base_image_path).convert("RGBA") if base_image_path else None
 
     for i, filename in enumerate(files):
         input_path = os.path.join(input_dir, filename)
@@ -30,34 +37,33 @@ def resize_and_paste_images(input_dir, output_dir, size, base_image_path, color,
         img = Image.open(input_path).convert("RGBA")
 
         if color:
-            data = np.array(img)
-            red, green, blue, alpha = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
-            mask = (red != 0) | (green != 0) | (blue != 0) | (alpha != 0)
-            data[:,:,:3][mask] = color[:3]
-            img = Image.fromarray(data)
+            img = apply_color(img, color)
 
-        if invert_paste and resize_after:
-            base = base_image.copy()
-            position = ((img.width - base.width) // 2, (img.height - base.height) // 2)
-            img.paste(base, position, base)
-            base = img.resize(size, Image.ANTIALIAS)
-        elif invert_paste or resize_after:
-            if invert_paste:
-                img = img.resize(size, Image.ANTIALIAS)
+        if base_image:
+            if invert_paste and resize_after:
                 base = base_image.copy()
                 position = ((img.width - base.width) // 2, (img.height - base.height) // 2)
                 img.paste(base, position, base)
-                base = img
+                base = img.resize(size, Image.ANTIALIAS)
+            elif invert_paste or resize_after:
+                if invert_paste:
+                    img = img.resize(size, Image.ANTIALIAS)
+                    base = base_image.copy()
+                    position = ((img.width - base.width) // 2, (img.height - base.height) // 2)
+                    img.paste(base, position, base)
+                    base = img
+                else:
+                    base = base_image.copy()
+                    position = ((base.width - img.width) // 2, (base.height - img.height) // 2)
+                    base.paste(img, position, img)
+                    base = base.resize(size, Image.ANTIALIAS)
             else:
                 base = base_image.copy()
+                img = img.resize(size, Image.ANTIALIAS)
                 position = ((base.width - img.width) // 2, (base.height - img.height) // 2)
                 base.paste(img, position, img)
-                base = base.resize(size, Image.ANTIALIAS)
         else:
-            base = base_image.copy()
-            img = img.resize(size, Image.ANTIALIAS)
-            position = ((base.width - img.width) // 2, (base.height - img.height) // 2)
-            base.paste(img, position, img)
+            base = img.resize(size, Image.ANTIALIAS) if size else img
 
         base.save(temp_output, "PNG")
         try:
@@ -77,9 +83,16 @@ def convert_to_dds(input_dir, output_dir, color, compression_format):
     for i, filename in enumerate(files):
         input_path = os.path.join(input_dir, filename)
         dds_output = os.path.join(output_dir, os.path.splitext(filename)[0] + ".dds")
-
+        if color:
+            img = Image.open(input_path).convert("RGBA")
+            img = apply_color(img, color)
+            temp_output = os.path.join(output_dir, filename)
+            img.save(temp_output, "PNG")
+            input_path = temp_output
         try:
             subprocess.call(["nvcompress", compression_format, input_path, dds_output])
+            if color:
+                os.remove(temp_output)
         except Exception as e:
             messagebox.showerror("Error", f"Error during nvcompress execution: {str(e)}")
 
@@ -109,15 +122,13 @@ def convert_images():
         messagebox.showerror("Error", f"Invalid compression format: {compression_format}")
         return
 
-    if width and height and base_image_name:
-        size = (int(width), int(height))
-        base_image_path = os.path.join("Base_Image", base_image_name)
-        if not os.path.isfile(base_image_path):
-            messagebox.showerror("Error", f"Base image does not exist: {base_image_path}")
-            return
-        resize_and_paste_images(input_dir, output_dir, size, base_image_path, color, compression_format, resize_after, invert_paste)
-    else:
-        convert_to_dds(input_dir, output_dir, color, compression_format)
+    size = (int(width), int(height)) if width and height else None
+    base_image_path = os.path.join("Base_Image", base_image_name) if base_image_name else None
+    if base_image_path and not os.path.isfile(base_image_path):
+        messagebox.showerror("Error", f"Base image does not exist: {base_image_path}")
+        return
+
+    resize_and_paste_images(input_dir, output_dir, size, base_image_path, color, compression_format, resize_after, invert_paste)
 
 def reset_fields():
     input_dir_entry.delete(0, tk.END)
