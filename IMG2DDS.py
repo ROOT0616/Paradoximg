@@ -145,7 +145,7 @@ root = tk.Tk()
 root.title('PNG to DDS Converter')
 
 compression_options = ['-fast', '-production', '-highest', '-nocuda', '-rgb', '-lumi', '-bc1', '-bc1n', '-bc1a', '-bc2', '-bc3', '-bc3n', '-bc4', '-bc4s', '-ati2', '-bc5', '-bc5s', '-bc6', '-bc6s', '-bc7', '-bc3_rgbm', '-astc_ldr_4x4', '-astc_ldr_5x4', '-astc_ldr_12x12']
-color_options = {'Nomal': [0, 36, 31], 'Corporate': [12, 12, 5], 'Machine': [0, 23, 33], 'Bad': [35, 4, 0], 'Red': [255, 0, 0], 'Green': [0, 255, 0], 'Blue': [0, 0, 255], 'Black': [0, 0, 0], 'White': [255, 255, 255], None: None}
+color_options = {'Nomal': [0, 36, 31], 'Corporate': [12, 12, 5], 'Machine': [0, 23, 33], 'Hive': [232, 221, 195], 'Bad': [35, 4, 0], 'Red': [255, 0, 0], 'Green': [0, 255, 0], 'Blue': [0, 0, 255], 'Black': [0, 0, 0], 'White': [255, 255, 255], None: None}
 
 input_dir_label = tk.Label(root, text="Input Directory:")
 input_dir_label.pack()
