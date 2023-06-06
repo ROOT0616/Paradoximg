@@ -23,7 +23,11 @@ def apply_color(img, color):
     data[:,:,:3][mask] = color[:3]
     return Image.fromarray(data)
 
-def resize_and_paste_images(input_dir, output_dir, size, base_image_path, color, compression_format, resize_after, invert_paste):
+def apply_mask(image, mask_path):
+    mask = Image.open(mask_path).convert("RGBA")
+    return Image.composite(image.resize(mask.size, Image.ANTIALIAS), mask, mask)
+
+def resize_and_paste_images(input_dir, output_dir, size, base_image_path, mask_image_path, color, compression_format, resize_after, invert_paste, apply_mask_flag):
     files = os.listdir(input_dir)
     number_of_files = len(files)
     progress_bar["maximum"] = number_of_files
@@ -38,6 +42,9 @@ def resize_and_paste_images(input_dir, output_dir, size, base_image_path, color,
 
         if color:
             img = apply_color(img, color)
+
+        if apply_mask_checkbox_var.get() and mask_image_path:
+            img = apply_mask(img, mask_image_path)
 
         if base_image:
             if invert_paste and resize_after:
@@ -75,29 +82,19 @@ def resize_and_paste_images(input_dir, output_dir, size, base_image_path, color,
         progress_bar["value"] = i+1
         root.update_idletasks()
 
-def convert_to_dds(input_dir, output_dir, color, compression_format):
-    files = os.listdir(input_dir)
-    number_of_files = len(files)
-    progress_bar["maximum"] = number_of_files
+def reset_fields():
+    input_dir_entry.delete(0, tk.END)
+    output_dir_entry.delete(0, tk.END)
+    compression_format_combobox.set('')
+    width_entry.delete(0, tk.END)
+    height_entry.delete(0, tk.END)
+    base_image_combobox.set('')
+    mask_image_combobox.set('')
+    color_combobox.set('')
+    resize_checkbox_var.set(0)
+    invert_paste_checkbox_var.set(0)
+    apply_mask_checkbox_var.set(0)
 
-    for i, filename in enumerate(files):
-        input_path = os.path.join(input_dir, filename)
-        dds_output = os.path.join(output_dir, os.path.splitext(filename)[0] + ".dds")
-        if color:
-            img = Image.open(input_path).convert("RGBA")
-            img = apply_color(img, color)
-            temp_output = os.path.join(output_dir, filename)
-            img.save(temp_output, "PNG")
-            input_path = temp_output
-        try:
-            subprocess.call(["nvcompress", compression_format, input_path, dds_output])
-            if color:
-                os.remove(temp_output)
-        except Exception as e:
-            messagebox.showerror("Error", f"Error during nvcompress execution: {str(e)}")
-
-        progress_bar["value"] = i+1
-        root.update_idletasks()
 
 def convert_images():
     input_dir = input_dir_entry.get()
@@ -106,9 +103,11 @@ def convert_images():
     width = width_entry.get()
     height = height_entry.get()
     base_image_name = base_image_combobox.get()
+    mask_image_name = mask_image_combobox.get()
     color_name = color_combobox.get()
     resize_after = resize_checkbox_var.get()
     invert_paste = invert_paste_checkbox_var.get()
+    apply_mask_flag = apply_mask_checkbox_var.get()
 
     color = color_options.get(color_name, None)
 
@@ -118,28 +117,24 @@ def convert_images():
     if not os.path.isdir(output_dir):
         messagebox.showerror("Error", f"Output directory does not exist: {output_dir}")
         return
-    if compression_format not in compression_options:
-        messagebox.showerror("Error", f"Invalid compression format: {compression_format}")
+    if width and not width.isnumeric():
+        messagebox.showerror("Error", f"Invalid width: {width}")
+        return
+    if height and not height.isnumeric():
+        messagebox.showerror("Error", f"Invalid height: {height}")
         return
 
-    size = (int(width), int(height)) if width and height else None
-    base_image_path = os.path.join("Base_Image", base_image_name) if base_image_name else None
-    if base_image_path and not os.path.isfile(base_image_path):
-        messagebox.showerror("Error", f"Base image does not exist: {base_image_path}")
-        return
+    size = None
+    if width and height:
+        size = (int(width), int(height))
+    base_image_path = None
+    if base_image_name:
+        base_image_path = os.path.join("Base_Image", base_image_name)
+    mask_image_path = None
+    if mask_image_name:
+        mask_image_path = os.path.join("Mask_Image", mask_image_name)
 
-    resize_and_paste_images(input_dir, output_dir, size, base_image_path, color, compression_format, resize_after, invert_paste)
-
-def reset_fields():
-    input_dir_entry.delete(0, tk.END)
-    output_dir_entry.delete(0, tk.END)
-    compression_format_combobox.set('')
-    width_entry.delete(0, tk.END)
-    height_entry.delete(0, tk.END)
-    base_image_combobox.set('')
-    color_combobox.set('')
-    resize_checkbox_var.set(0)
-    invert_paste_checkbox_var.set(0)
+    resize_and_paste_images(input_dir, output_dir, size, base_image_path, mask_image_path, color, compression_format, resize_after, invert_paste, apply_mask_flag)
 
 root = tk.Tk()
 root.title('PNG to DDS Converter')
@@ -180,6 +175,15 @@ base_image_label = tk.Label(root, text="Base Image:")
 base_image_label.pack()
 base_image_combobox = ttk.Combobox(root, values=os.listdir("Base_Image"), width=30)
 base_image_combobox.pack()
+
+mask_image_label = tk.Label(root, text="Mask Image:")
+mask_image_label.pack()
+mask_image_combobox = ttk.Combobox(root, values=os.listdir("Mask_Image"), width=30)
+mask_image_combobox.pack()
+
+apply_mask_checkbox_var = tk.IntVar()
+apply_mask_checkbox = tk.Checkbutton(root, text="Apply Mask", variable=apply_mask_checkbox_var)
+apply_mask_checkbox.pack()
 
 color_label = tk.Label(root, text="Color:")
 color_label.pack()
