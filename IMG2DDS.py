@@ -136,6 +136,42 @@ def convert_images():
 
     resize_and_paste_images(input_dir, output_dir, size, base_image_path, mask_image_path, color, compression_format, resize_after, invert_paste, apply_mask_flag)
 
+class ToolTip(object):
+    def __init__(self, widget):
+        self.widget = widget
+        self.tip_window = None
+
+    def show_tip(self, tip_text):
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 25
+
+        self.tip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+
+        label = tk.Label(tw, text=tip_text, background="#ffffe0", relief=tk.SOLID, borderwidth=1)
+        label.pack(ipadx=1)
+
+    def hide_tip(self):
+        if self.tip_window:
+            self.tip_window.destroy()
+            self.tip_window = None
+
+def create_tooltip(widget, tip_text):
+    tooltip = ToolTip(widget)
+
+    def enter(event):
+        tooltip.show_tip(tip_text)
+
+    def leave(event):
+        tooltip.hide_tip()
+
+    widget.bind("<Enter>", enter)
+    widget.bind("<Leave>", leave)
+
+
+
 root = tk.Tk()
 root.title('PNG to DDS Converter')
 
@@ -164,11 +200,13 @@ compression_format_combobox.pack()
 width_label = tk.Label(root, text="Width:")
 width_label.pack()
 width_entry = tk.Entry(root, width=10)
+create_tooltip(width_entry, "Enter the width here.")
 width_entry.pack()
 
 height_label = tk.Label(root, text="Height:")
 height_label.pack()
 height_entry = tk.Entry(root, width=10)
+create_tooltip(height_entry, "Enter the height here.")
 height_entry.pack()
 
 base_image_label = tk.Label(root, text="Base Image:")
