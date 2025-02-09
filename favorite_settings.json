@@ -1,0 +1,16 @@
+{
+    "vic3_building": {
+        "input_dir": "E:/Prg/Python/Stellarisimg/input_images",
+        "output_dir": "E:/Prg/Python/Stellarisimg/output_images",
+        "compression_format": "-rgb",
+        "width": "",
+        "height": "",
+        "base_image": "void_vic3_building_Frame.png",
+        "mask_image": "mask_vic3_building.png",
+        "color": "",
+        "resize_after": 0,
+        "invert_paste": 1,
+        "apply_mask": 1,
+        "mask_last": 0
+    }
+}

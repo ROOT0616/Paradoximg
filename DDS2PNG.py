@@ -1,5 +1,5 @@
 import os
-import imageio
+import imageio.v2 as imageio  # 修正: v2 を明示的に指定
 from PIL import Image
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -23,7 +23,7 @@ def convert_images():
 
     for filename in os.listdir(input_dir):
         if filename.endswith('.dds'):
-            dds_image = imageio.imread(os.path.join(input_dir, filename))
+            dds_image = imageio.imread(os.path.join(input_dir, filename))  # 修正: v2 を使用
             img = Image.fromarray(dds_image)
             base_filename = os.path.splitext(filename)[0]
             img.save(os.path.join(output_dir, f'{base_filename}.png'))
