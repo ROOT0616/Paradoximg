@@ -1,94 +1,116 @@
 # PNG to DDS Converter
 
-This is a GUI tool designed to convert PNG images to DDS format. It uses the `nvcompress` command-line tool from NVIDIA's Texture Tools to perform the conversion. Additionally, it provides options to change the color of the input image and add a base image underneath.
+The PNG to DDS Converter is a GUI-based application that converts PNG images into DDS format using NVIDIA's `nvcompress` tool. In addition to basic conversion, this tool provides several advanced image processing features including color adjustment, mask application, compositing with a base image, and flexible resizing options. You can also save and load your favorite settings for quick reuse.
 
-## Prerequisites
-
-1. **Python**: Ensure you have Python installed on your machine. The Python version used for developing this tool is Python 3.10. You can download Python from the official site: https://www.python.org/downloads/.
-
-2. **Libraries**: Install necessary Python libraries using pip:
-    - Tkinter: Tkinter is Python's de-facto standard GUI package. It is included with Python by default.
-    - numpy: `pip install numpy`
-    - pillow (PIL): `pip install pillow`
-
-3. **nvcompress**: This tool uses the `nvcompress` tool from NVIDIA's Texture Tools. Ensure you have it installed and accessible from your command line. You can download it from: https://developer.nvidia.com/nvidia-texture-tools-exporter.
-
-## Usage
-
-1. Open the script in Python.
-
-2. The GUI will have several fields. Here is what each field is used for:
-
-    - **Input Directory**: Directory that contains the PNG images to be converted. Click "Browse..." to open a dialog and choose the directory.
-
-    - **Output Directory**: Directory where the DDS images will be saved after conversion. Click "Browse..." to open a dialog and choose the directory.
-
-    - **Compression Format**: The DDS compression format. Available options are listed in the dropdown menu.
-
-    - **Width** and **Height**: The width and height to resize images to. If these fields and "Base Image" are filled in, each image will be resized to these dimensions and then pasted onto the base image.
-
-    - **Base Image**: The image that will be pasted underneath each input image. The images are located in the "Base_Image" folder. The image is chosen from the dropdown menu.
-
-    - **Color**: The color to change each input image to. Available options are listed in the dropdown menu.
-
-    - **Resize after paste**: If this checkbox is checked, each image will be resized after being pasted onto the base image.
-
-    - **Invert paste order**: If this checkbox is checked, the base image will be pasted onto each input image instead of the other way around.
-
-3. Click "Convert Images" to start the conversion. The progress of the conversion will be shown in the progress bar.
-
-4. Click "Reset" to reset all fields to their default values.
-
-Remember, in order to perform the conversion correctly, the "Input Directory", "Output Directory", and "Compression Format" fields must be filled in. The remaining fields are optional and depend on whether you want to resize images, change their color, or paste a base image. If you want to simply convert images without any additional operations, leave the optional fields blank.
-
-## Disclaimer
-
-This tool was developed for educational purposes and has not been extensively tested. Use it at your own risk. Please ensure you have backup copies of any important images before using this tool.
-
+---
 
 # PNG to DDS コンバータ
 
-このツールはPNGイメージをDDSフォーマットに変換するためのGUIツールです。NVIDIAのテクスチャツールの `nvcompress` コマンドラインツールを使用して変換を行います。また、入力画像の色を変更したり、ベースイメージを追加したりするオプションも提供しています。
+本ツールは、NVIDIA の `nvcompress` コマンドラインツールを用いて PNG 画像を DDS 形式に変換する GUI アプリケーションです。基本の変換処理に加え、画像の色調補正、マスク適用、ベースイメージとの合成、リサイズなどの多彩な機能を搭載しています。また、一度設定したパラメータをお気に入りとして保存・読み込みできるため、再利用も簡単です。
 
-## 前提条件
+---
 
-1. **Python**: お使いのマシンにPythonがインストールされていることを確認してください。このツールの開発に使用されたPythonのバージョンはPython 3.10です。Pythonは公式サイトからダウンロードできます: https://www.python.org/downloads/
+## New Features / 新機能
 
-2. **ライブラリ**: pipを使用して必要なPythonライブラリをインストールします：
-    - Tkinter: TkinterはPythonのデファクトスタンダードGUIパッケージです。Pythonにはデフォルトで含まれています。
-    - numpy: `pip install numpy`
-    - pillow (PIL): `pip install pillow`
+- **マスク適用機能**  
+  - 「Mask Image」コンボボックスからマスク画像を選択できます。  
+  - 「Apply Mask」チェックボックスでマスク処理を有効にし、さらに「マスクを最後に適用」チェックボックスを使用することで、合成後にマスクを適用するかどうかを選べます。
 
-3. **nvcompress**: このツールはNVIDIAのテクスチャツールから `nvcompress` ツールを使用します。それがインストールされていて、コマンドラインからアクセス可能であることを確認してください。ダウンロードはこちらからできます: https://developer.nvidia.com/nvidia-texture-tools-exporter.
+- **お気に入り設定機能**  
+  - 現在の各種設定を JSON ファイル（`favorite_settings.json`）に保存できます。  
+  - 保存済みのお気に入り設定をコンボボックスから選択して読み込み、すぐに同じ環境で変換処理を実行可能です。
 
-## 使い方
+- **柔軟な画像処理オプション**  
+  - 画像の色変換：事前定義されたカラーパレットから選択し、入力画像の色を一括変更できます。  
+  - ベースイメージとの合成：`Base_Image` フォルダ内の画像を選び、入力画像との合成が可能です。  
+  - リサイズオプション：「幅」と「高さ」を指定することで、変換前後のリサイズ処理を行うことができます。  
+  - 貼り付け順序の変更：`invert paste order` チェックボックスで、合成時の貼り付け順序を反転できます。
 
-1. スクリプトをPythonで開きます。
+- **ユーザーフレンドリーな GUI**  
+  - 各入力フィールドにはツールチップや説明ボタンを設置し、操作方法が直感的に理解できるよう工夫しています。  
+  - 変換の進行状況はプログレスバーでリアルタイムに表示されます。
 
-2. GUIにはいくつかのフィールドがあります。それぞれのフィールドの用途は以下のとおりです：
+---
 
-    - **入力ディレクトリ**: 変換するPNG画像が含まれるディレクトリ。 "Browse..."をクリックするとダイアログが開き、ディレクトリを選択できます。
+## Prerequisites / 前提条件
 
-    - **出力ディレクトリ**: 変換後のDDS画像が保存されるディレクトリ。 "Browse..."をクリックするとダイアログが開き、ディレクトリを選択できます。
+1. **Python**  
+   - 本ツールは Python で開発されています。（開発時は Python 3.10 を使用）  
+   - [python.org](https://www.python.org/downloads/) よりダウンロードしてください。
 
-    - **圧縮フォーマット**: DDSの圧縮フォーマット。利用可能なオプションはドロップダウンメニューにリストされています。
+2. **必要なライブラリ**  
+   以下のライブラリが必要です。インストールされていない場合は pip を用いてインストールしてください。
+   - **Tkinter**: Python 標準の GUI ライブラリ（通常は同梱されています）。
+   - **numpy**: `pip install numpy`
+   - **pillow (PIL)**: `pip install pillow`
 
-    - **幅**と**高さ**: 画像をリサイズする幅と高さ。これらのフィールドと "Base Image" が入力されている場合、各画像はこれらの寸法にリサイズされ、その後ベースイメージに貼り付けられます。
+3. **nvcompress**  
+   - NVIDIA の Texture Tools に含まれる `nvcompress` ツールが必要です。  
+   - コマンドラインから実行可能な状態にし、[NVIDIA Texture Tools Exporter](https://developer.nvidia.com/nvidia-texture-tools-exporter) からダウンロードしてください。
 
-    - **ベースイメージ**: 各入力画像の下に貼り付けられる画像。画像は "Base_Image" フォルダに格納されています。画像はドロップダウンメニューから選択されます。
+---
 
-    - **色**: 各入力画像の色を変更する色。利用可能なオプションはドロップダウンメニューにリストされています。
+## Usage / 使い方
 
-    - **ペースト後にリサイズ**: このチェックボックスがチェックされている場合、各画像はベースイメージに貼り付けた後にリサイズされます。
+1. **スクリプトの起動**  
+   Python でスクリプトを実行すると、GUI ウィンドウが表示されます。
 
-    - **ペーストの順序を反転**: このチェックボックスがチェックされている場合、ベースイメージは各入力画像に貼り付けられるのではなく、その逆になります。
+2. **各種設定の入力**  
+   - **入力ディレクトリ (Input Directory)**  
+     - 変換対象の PNG 画像が格納されているディレクトリを指定します。  
+     - 「Browse...」ボタンをクリックしてダイアログから選択してください。
+     
+   - **出力ディレクトリ (Output Directory)**  
+     - 変換後の DDS 画像を保存するディレクトリを指定します。  
+     - 「Browse...」ボタンをクリックしてディレクトリを選択します。
+     
+   - **圧縮フォーマット (Compression Format)**  
+     - DDS の圧縮形式をドロップダウンメニューから選択します。
+     
+   - **幅 (Width)** と **高さ (Height)**  
+     - 画像のリサイズを行う場合の寸法を数値で入力します。  
+     - 両フィールドに値を入力した場合、画像は指定サイズにリサイズされ、（「Base Image」が指定されていれば）その上に合成されます。
+     
+   - **ベースイメージ (Base Image)**  
+     - 入力画像との合成の際に使用するベースイメージを、`Base_Image` フォルダ内から選択します。
+     
+   - **マスク画像 (Mask Image)**  
+     - マスク処理に使用する画像を、`Mask_Image` フォルダ内から選択します。
+     
+   - **色 (Color)**  
+     - 入力画像の色変換に使用する色を、事前定義されたオプションから選択します。
+     
+   - **ペースト後にリサイズ (Resize after paste)**  
+     - チェックすると、合成後にリサイズ処理を実行します。
+     
+   - **ペーストの順序を反転 (Invert paste order)**  
+     - チェックすると、ベースイメージと入力画像の貼り付け順序が反転します。
+     
+   - **Apply Mask / マスク適用**  
+     - チェックすると、指定されたマスク画像が画像合成の過程で適用されます。  
+     - 「マスクを最後に適用」のチェックボックスにより、合成後にマスク処理を行うかどうかを選択できます。
 
-3. "Convert Images"をクリックして変換を開始します。変換の進行状況はプログレスバーで表示されます。
+3. **変換の実行**  
+   - 「Convert Images」ボタンをクリックすると、設定に基づいて以下の順序で画像処理が行われます：  
+     1. 入力画像の読み込みと RGBA 形式への変換  
+     2. 色変換（Color 指定がある場合）  
+     3. マスクの適用（「Apply Mask」が有効の場合、かつ「マスクを最後に適用」がチェックされていなければ早期に適用）  
+     4. ベースイメージとの合成（貼り付け順序やリサイズ処理のオプションに従い処理）  
+     5. （「マスクを最後に適用」がチェックされている場合）合成後にマスク適用  
+     6. 一時 PNG として保存し、`nvcompress` により DDS 形式へ変換、その後一時ファイルを削除  
+   - 変換処理中はプログレスバーで進捗が表示されます。
 
-4. "Reset"をクリックすると、すべてのフィールドがデフォルト値にリセットされます。
+4. **設定のリセットとお気に入り機能**  
+   - **Reset**  
+     - 「Reset」ボタンをクリックすると、すべてのフィールドが初期状態にリセットされます。
+   - **お気に入り設定の保存／読み込み**  
+     - 「お気に入りを保存」ボタンで現在の設定を保存できます。  
+     - 保存済みのお気に入りはコンボボックスから選び、「お気に入りを読み込み」ボタンで復元可能です。
 
-変換を正しく行うためには、"入力ディレクトリ"、"出力ディレクトリ"、"圧縮フォーマット"のフィールドが入力されている必要があります。残りのフィールドはオプションであり、画像をリサイズしたり、色を変更したり、ベースイメージを貼り付けたりするかどうかによります。追加の操作なしに単純に画像を変換したい場合は、オプションのフィールドを空白にしておいてください。
+---
 
-## 免責事項
+## Disclaimer / 免責事項
 
-このツールは教育目的で開発され、広範囲にわたるテストは行われていません。自己責任で使用してください。重要な画像のバックアップを持っていることを確認してから、このツールを使用してください。
+This tool is provided for educational and demonstration purposes only. It has been tested under specific conditions and may not work perfectly in every environment. Use it at your own risk and always back up your important images before processing.
+
+本ツールは教育および実証目的で開発されています。特定の環境でテスト済みですが、すべての環境での動作を保証するものではありません。使用にあたっては自己責任で行い、重要な画像は必ずバックアップを取ってからご利用ください.
