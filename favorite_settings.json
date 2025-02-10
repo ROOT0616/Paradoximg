@@ -1,7 +1,7 @@
 {
     "vic3_building": {
-        "input_dir": "E:/Prg/Python/Stellarisimg/input_images",
-        "output_dir": "E:/Prg/Python/Stellarisimg/output_images",
+        "input_dir": "input_images",
+        "output_dir": "output_images",
         "compression_format": "-rgb",
         "width": "",
         "height": "",
@@ -11,6 +11,20 @@
         "resize_after": 0,
         "invert_paste": 1,
         "apply_mask": 1,
+        "mask_last": 0
+    }
+    ,"Paradox_default": {
+        "input_dir": "input_images",
+        "output_dir": "output_images",
+        "compression_format": "-rgb",
+        "width": "",
+        "height": "",
+        "base_image": "",
+        "mask_image": "",
+        "color": "",
+        "resize_after": 0,
+        "invert_paste": 0,
+        "apply_mask": 0,
         "mask_last": 0
     }
 }
