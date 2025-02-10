@@ -7,13 +7,12 @@ import numpy as np
 from PIL import Image
 import json
 
-FAVORITES_FILE = "favorite_settings.json"
-
 # --- カレントディレクトリ対策 ---
 # スクリプトのあるディレクトリを取得し、そのフォルダを基準に各種フォルダのパスを生成
 script_dir = os.path.dirname(os.path.abspath(__file__))
 base_image_dir = os.path.join(script_dir, "Base_Image")
 mask_image_dir = os.path.join(script_dir, "Mask_Image")
+FAVORITES_FILE = os.path.join(script_dir, "favorite_settings.json")
 # ---------------------------------
 
 def browse_input_dir():
