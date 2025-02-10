@@ -9,6 +9,13 @@ import json
 
 FAVORITES_FILE = "favorite_settings.json"
 
+# --- カレントディレクトリ対策 ---
+# スクリプトのあるディレクトリを取得し、そのフォルダを基準に各種フォルダのパスを生成
+script_dir = os.path.dirname(os.path.abspath(__file__))
+base_image_dir = os.path.join(script_dir, "Base_Image")
+mask_image_dir = os.path.join(script_dir, "Mask_Image")
+# ---------------------------------
+
 def browse_input_dir():
     filename = filedialog.askdirectory()
     input_dir_entry.delete(0, tk.END)
@@ -157,10 +164,12 @@ def convert_images():
         size = (int(width), int(height)) if width and height else default_size
     base_image_path = None
     if base_image_name:
-        base_image_path = os.path.join("Base_Image", base_image_name)
+        # 絶対パスでBase_Imageフォルダ内を指定
+        base_image_path = os.path.join(base_image_dir, base_image_name)
     mask_image_path = None
     if mask_image_name:
-        mask_image_path = os.path.join("Mask_Image", mask_image_name)
+        # 絶対パスでMask_Imageフォルダ内を指定
+        mask_image_path = os.path.join(mask_image_dir, mask_image_name)
 
     resize_and_paste_images(input_dir, output_dir, size, base_image_path, mask_image_path, color, compression_format, resize_after, invert_paste, apply_mask_flag)
 
@@ -357,7 +366,8 @@ base_image_label.pack(side=tk.LEFT)
 explain_base_image_button = tk.Button(frame_base_image, text="説明", command=lambda: messagebox.showinfo("Base Image", "貼り付けの基準となる画像を選択します。"))
 explain_base_image_button.pack(side=tk.LEFT, padx=5)
 
-base_image_combobox = ttk.Combobox(root, values=os.listdir("Base_Image"), width=30)
+# os.listdir()の対象を絶対パスに変更
+base_image_combobox = ttk.Combobox(root, values=os.listdir(base_image_dir), width=30)
 base_image_combobox.pack(anchor='center')
 
 # Mask Image
@@ -368,7 +378,7 @@ mask_image_label.pack(side=tk.LEFT)
 explain_mask_image_button = tk.Button(frame_mask_image, text="説明", command=lambda: messagebox.showinfo("Mask Image", "マスクを適用する際のマスク画像を選択します。"))
 explain_mask_image_button.pack(side=tk.LEFT, padx=5)
 
-mask_image_combobox = ttk.Combobox(root, values=os.listdir("Mask_Image"), width=30)
+mask_image_combobox = ttk.Combobox(root, values=os.listdir(mask_image_dir), width=30)
 mask_image_combobox.pack(anchor='center')
 
 # Apply Mask Checkbox
