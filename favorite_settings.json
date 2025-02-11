@@ -5,7 +5,7 @@
         "compression_format": "-rgb",
         "width": "",
         "height": "",
-        "base_image": "void_vic3_building_Frame.png",
+        "base_image": "void_vic3_building_Frame_1.png",
         "mask_image": "mask_vic3_building.png",
         "color": "",
         "resize_after": 0,
