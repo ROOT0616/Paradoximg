@@ -14,10 +14,13 @@ class ScrollableFrame(tk.Frame):
         self.canvas = tk.Canvas(self)
         self.scrollbar = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.frame = tk.Frame(self.canvas)
+
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
+
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scrollbar.pack(side="right", fill="y")
+
         self.frame.bind("<Configure>", self.on_frame_configure)
 
     def on_frame_configure(self, event):
@@ -26,28 +29,31 @@ class ScrollableFrame(tk.Frame):
 class ImageGallery(tk.Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        self.grid_rowconfigure(0, weight=1)  # 縦方向に可変
+        self.grid_columnconfigure(0, weight=1)  # 横方向にも可変
+
         self.images_frame = ScrollableFrame(self)
-        self.images_frame.grid(row=0, column=0, sticky="nsew")
-        
+        self.images_frame.grid(row=0, column=0, columnspan=4, sticky="nsew")
+
         self.filename_label = tk.Label(self, text="No Image Selected")
-        self.filename_label.grid(row=1, column=0, sticky="n")
-        
+        self.filename_label.grid(row=1, column=0, columnspan=4, sticky="ew")
+
         self.zoomed_image_label = tk.Label(self)
-        self.zoomed_image_label.grid(row=2, column=0, columnspan=2)
-        
+        self.zoomed_image_label.grid(row=0, column=5, rowspan=3, sticky="nsew")  # 右側に固定
+
         self.zoom_level = 1
         self.zoom_slider = Scale(self, from_=0.4, to=5, resolution=0.1, orient="horizontal", command=self.update_zoom)
         self.zoom_slider.set(1)
-        self.zoom_slider.grid(row=3, column=0, sticky="ew")
-        
+        self.zoom_slider.grid(row=3, column=5, sticky="ew")
+
         self.reload_button = tk.Button(self, text="Reload", command=self.reload_folder)
-        self.reload_button.grid(row=4, column=0, sticky="ew")
-        
+        self.reload_button.grid(row=4, column=0, columnspan=4, sticky="ew")
+
         self.images = []
         self.current_index = None
         self.current_folder = None
-        self.num_columns = 5  # 画像を表示する列数
-    
+        self.num_columns = 7  # 画像を表示する列数
+
     def clear_images(self):
         for widget in self.images_frame.frame.winfo_children():
             widget.destroy()
@@ -55,7 +61,7 @@ class ImageGallery(tk.Frame):
         self.current_index = None
         self.filename_label.config(text="No Image Selected")
         self.zoomed_image_label.config(image="")
-    
+
     def add_image(self, filepath):
         try:
             image = load_and_convert_dds(filepath)
@@ -66,23 +72,23 @@ class ImageGallery(tk.Frame):
             image_label = tk.Label(self.images_frame.frame, image=tk_image)
             image_label.image = tk_image
             image_label.bind("<Button-1>", lambda event, index=len(self.images)-1: self.show_image(index))
-            
+
             row = len(self.images) // self.num_columns
             col = len(self.images) % self.num_columns
             image_label.grid(row=row, column=col, padx=5, pady=5)
         except Exception as e:
             print(f"Failed to load {filepath}: {e}")
-    
+
     def show_image(self, index):
         self.current_index = index
         _, filepath = self.images[self.current_index]
         self.filename_label.config(text=filepath)
         self.update_zoomed_image()
-    
+
     def update_zoom(self, value):
         self.zoom_level = float(value)
         self.update_zoomed_image()
-    
+
     def update_zoomed_image(self):
         if self.current_index is None:
             return
@@ -91,7 +97,7 @@ class ImageGallery(tk.Frame):
         tk_image = ImageTk.PhotoImage(resized_image)
         self.zoomed_image_label.config(image=tk_image)
         self.zoomed_image_label.image = tk_image
-    
+
     def reload_folder(self):
         if self.current_folder:
             update_image_list(self.current_folder)
@@ -137,16 +143,20 @@ def open_folder_dialog():
 
 root = tk.Tk()
 root.title("DDS Image Viewer")
-root.geometry("800x600")
+root.geometry("1000x600")  # ウィンドウの初期サイズ
+
+root.grid_rowconfigure(1, weight=1)  # 縦方向の伸縮を可能に
+root.grid_columnconfigure(1, weight=4)  # 画像一覧を中央4列分で固定
+root.grid_columnconfigure(5, weight=1)  # 選択した画像のスペースも可変
 
 button = tk.Button(root, text="Open DDS Folder", command=open_folder_dialog)
-button.pack()
+button.grid(row=0, column=0, columnspan=6, sticky="ew")
 
 folder_tree = ttk.Treeview(root, columns=("fullpath",), displaycolumns="")
-folder_tree.pack(side="left", fill="y")
+folder_tree.grid(row=1, column=0, sticky="ns")  # 一番左に配置
 folder_tree.bind("<<TreeviewSelect>>", on_folder_select)
 
 gallery = ImageGallery(root)
-gallery.pack(expand=True, fill="both")
+gallery.grid(row=1, column=1, columnspan=4, sticky="nsew")  # 画像一覧を中央4列分で固定
 
 root.mainloop()
